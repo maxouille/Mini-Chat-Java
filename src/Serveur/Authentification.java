@@ -1,7 +1,6 @@
 package Serveur;
 
 import java.net.*;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.io.*;
 
@@ -16,63 +15,71 @@ public class Authentification implements Runnable {
 	
 	public Authentification(Socket s){
 		 socket = s;
-		}
+	}
+	
 	public void run() {
 	
 		try {
 			
+			// On créé un flux d'entré pour recevoir et un flux de sortie pour écrire.
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new PrintWriter(socket.getOutputStream());
 			
-		while(!authentifier){
-			
-			out.println("Entrez votre login :");
-			out.flush();
-			login = in.readLine();
-			
-			
-			out.println("Entrez votre mot de passe :");
-			out.flush();
-			pass = in.readLine();
-
-			if(isValid(login, pass)){
-				
-				out.println("connecte");
-				System.out.println(login +" vient de se connecter ");
+			while(!authentifier){	
+				// On envoie au client
+				out.println("Entrez votre login :");
 				out.flush();
-				authentifier = true;	
+				//On récupère ce qu'il a écrit
+				login = in.readLine();
+				
+				//On demande au client
+				out.println("Entrez votre mot de passe :");
+				out.flush();
+				//On récupère ce qu'il a écrit
+				pass = in.readLine();
+	
+				// On check le login/pass
+				if(isValid(login, pass)){
+					//On envoie au client "connecte"
+					out.println("connecte");
+					out.flush();
+					System.out.println(login +" vient de se connecter ");
+					authentifier = true;	
+				}
+				// Si pas authentifié
+				else {
+					out.println("erreur"); 
+					out.flush();
+				}
 			}
-			else {out.println("erreur"); out.flush();}
-		 }
+			
+			//On créé un nouveau thread qui exécutera le chat en lui même.
 			t2 = new Thread(new Chat_ClientServeur(socket,login));
-			t2.start();
-			
-		} catch (IOException e) {
-			
+			t2.start();	
+		} 
+		catch (IOException e) {
 			System.err.println(login+" ne répond pas !");
 		}
 	}
 	
-	private static boolean isValid(String login, String pass) {
-		
+	private boolean isValid(String login, String pass) {
 		
 		boolean connexion = false;
 		try {
 			Scanner sc = new Scanner(new File("zero.txt"));
 			
-			
+			//On parcours l'itérateur jusqu'à trouver un login pass correct
 			while(sc.hasNext()){
 				if(sc.nextLine().equals(login+" "+pass)){
               	  connexion=true;
 				  break;
 				}
-             }
-			
-		} catch (FileNotFoundException e) {	
+            }
+			sc.close();
+		} 
+		catch (FileNotFoundException e) {	
 			System.err.println("Le fichier n'existe pas !");
 		}
-	return connexion;
-		
+		return connexion;
 	}
-
 }
