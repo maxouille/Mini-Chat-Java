@@ -2,13 +2,15 @@ package Serveur;
 
 import java.io.*;
 import java.net.*;
+import java.util.Vector;
 
 public class Serveur {
 	public static ServerSocket ss = null;
 	public static Thread t;
-
+	public Vector<PrintWriter> SocketVector = null;
+	
 	public static void main(String[] args) {
-		
+		Vector<PrintWriter> SocketVector = new Vector<PrintWriter>();
 		try {
 			// On créé une nouvelle socket sur le port passé en argument.
 			ss = new ServerSocket(2009);
@@ -16,7 +18,7 @@ public class Serveur {
 			System.out.println("Le serveur est à l'écoute du port "+ss.getLocalPort());
 			
 			// On créé un nouveau thread pour gérer les connexions des clients.
-			t = new Thread(new Accepter_connexion(ss));
+			t = new Thread(new Accepter_connexion(ss, SocketVector));
 			t.start();
 			
 		} 

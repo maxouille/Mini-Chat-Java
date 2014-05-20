@@ -2,17 +2,20 @@ package Serveur;
 
 import java.io.*;
 import java.net.*;
+import java.util.Vector;
 
 //Passé à un thread donc implémente la classe Runnable
 public class Accepter_connexion implements Runnable{
 
 	private ServerSocket socketserver = null;
 	private Socket socket = null;
+	private Vector<PrintWriter> SocketVector = null;
 
 	public Thread t1;
 	
-	public Accepter_connexion (ServerSocket ss){
+	public Accepter_connexion (ServerSocket ss, Vector<PrintWriter> sv){
 		socketserver = ss;
+		SocketVector = sv;
 	}
 	
 	public void run() {
@@ -26,7 +29,7 @@ public class Accepter_connexion implements Runnable{
 			System.out.println("Un zéro veut se connecter  ");
 			
 			//On créé un nouveau Thread pour l'authentification.
-			t1 = new Thread(new Authentification(socket));
+			t1 = new Thread(new Authentification(socket, SocketVector));
 			t1.start();
 			
 			}
