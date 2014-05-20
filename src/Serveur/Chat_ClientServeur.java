@@ -12,9 +12,8 @@ public class Chat_ClientServeur implements Runnable {
 
 	private Socket socket = null;
 	private BufferedReader in = null;
-	private PrintWriter out = null;
-	private String login = "zero";
-	private Thread t3, t4;
+	private String login = "inconnu";
+	private Thread t3;//, t4;
 	private Vector<PrintWriter> SocketVector = null;
 	
 	public Chat_ClientServeur(Socket s, String log, Vector<PrintWriter> sv){
@@ -28,10 +27,13 @@ public class Chat_ClientServeur implements Runnable {
 		try {
 			// On créé un flux d'entré pour recevoir et un flux de sortie pour écrire.
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			out = new PrintWriter(socket.getOutputStream());
+			// PAs besoin de flux de sortie. 
+			// Le serveur renvoi les messages à tous les clients donc 
+			// notre propre flux de sortie est dans SocketVector
+			//out = new PrintWriter(socket.getOutputStream());
 			
 			//On créé un nouveau Thread pour la reception de messages
-			t3 = new Thread(new ReceptionServeurdepuisClient(in,login, SocketVector));
+			t3 = new Thread(new ReceptionServeurdepuisClient(in, SocketVector));
 			t3.start();
 			//On créé un nouveau Thread pour l'émission de messages
 			//t4 = new Thread(new EmissionServeurversClients(out, SocketVector));

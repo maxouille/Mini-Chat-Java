@@ -12,9 +12,11 @@ public class Chat_ClientServeur implements Runnable {
 	private BufferedReader in = null;
 	//private Scanner sc;
 	private Thread t3, t4;
+	private String login = null;
 	
-	public Chat_ClientServeur(Socket s){
+	public Chat_ClientServeur(Socket s, String l){
 		socket = s;
+		login = l;
 	}
 	
 	public void run() {
@@ -26,7 +28,7 @@ public class Chat_ClientServeur implements Runnable {
 			//sc = new Scanner(System.in);
 			
 			//On lance un thread pour envoyer un message et un autre pour recevoir les messages.
-			t4 = new Thread(new EmissionClientversServeur(out));
+			t4 = new Thread(new EmissionClientversServeur(out, login));
 			t4.start();
 			t3 = new Thread(new ReceptionClientdepuisServeur(in));
 			t3.start();		    

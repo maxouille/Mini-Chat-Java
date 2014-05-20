@@ -58,7 +58,7 @@ public class Connexion implements Runnable {
 				}
 			}
 			//On lance un thread qui s'occupe du chat en lui-même
-			t2 = new Thread(new Chat_ClientServeur(socket));
+			t2 = new Thread(new Chat_ClientServeur(socket, login));
 			t2.start();
 		
 		} 
