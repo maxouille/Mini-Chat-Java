@@ -9,8 +9,9 @@ import java.util.Vector;
 public class ReceptionServeurdepuisClient implements Runnable {
 
 	private BufferedReader in;
-	private String message = null, login = null;
+	private String message = "", login = "USer";
 	private Vector<PrintWriter> SocketVector = null;
+	private int nbsock = 0;
 	
 	public ReceptionServeurdepuisClient(BufferedReader in, Vector<PrintWriter> sv){
 		this.in = in;
@@ -27,10 +28,10 @@ public class ReceptionServeurdepuisClient implements Runnable {
 				message = in.readLine();
 				//On l'affiche sur la console serveur
 				System.out.println(login+" : "+message);
-				//TODO Il faut renvoyer le message à tous les clients
 				//Il faut appeler EmisionServeurversClients sur tout le vector de socket
 				for (int i = 0; i < SocketVector.size(); i++) {
 					  //On l'envoie au client correspondant au PrintWriter out.
+					  nbsock = i;
 					  SocketVector.elementAt(i).println(login);
 					  SocketVector.elementAt(i).flush();
 					  SocketVector.elementAt(i).println(message);
@@ -38,7 +39,14 @@ public class ReceptionServeurdepuisClient implements Runnable {
 				}
 		    } 
 	        catch (IOException e) {	
-				e.printStackTrace();
+				System.err.println("Erreur socket fermée.");
+				SocketVector.elementAt(nbsock).close();
+				SocketVector.remove(nbsock);
+				try {
+					in.close();
+				} catch (IOException e1) {
+					System.err.println("in pas fermé");
+				}
 			}
 		}
 	}

@@ -10,7 +10,7 @@ public class Authentification implements Runnable {
 	private Socket socket;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
-	private String login = "zero", pass =  null;
+	private String login = "User", pass =  "";
 	public boolean authentifier = false;
 	public Thread t2;
 	private Vector<PrintWriter> SocketVector = null;
@@ -30,15 +30,9 @@ public class Authentification implements Runnable {
 			out = new PrintWriter(socket.getOutputStream());
 			
 			while(!authentifier){	
-				// On envoie au client
-				out.println("Entrez votre login :");
-				out.flush();
 				//On récupère ce qu'il a écrit
 				login = in.readLine();
 				
-				//On demande au client
-				out.println("Entrez votre mot de passe :");
-				out.flush();
 				//On récupère ce qu'il a écrit
 				pass = in.readLine();
 	
@@ -49,7 +43,7 @@ public class Authentification implements Runnable {
 					//On envoie au client "connecte"
 					out.println("connecte");
 					out.flush();
-					System.out.println(login +" vient de se connecter ");
+					System.out.println(login +" vient de se connecter.");
 					authentifier = true;	
 				}
 				// Si pas authentifié
