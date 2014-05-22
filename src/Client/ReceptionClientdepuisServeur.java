@@ -1,7 +1,10 @@
 package Client;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -14,45 +17,89 @@ import javax.swing.text.StyledDocument;
 public class ReceptionClientdepuisServeur extends Thread implements Runnable {
 
 	private BufferedReader in;
+	private Socket socket;
 	private static JTextPane mes;
 	private String message = "", login = "User";
-	
-	/**
-	 * @wbp.parser.entryPoint
-	 */
-	public ReceptionClientdepuisServeur(BufferedReader in, JTextPane m){
-		this.in = in;
+
+	public ReceptionClientdepuisServeur(Socket s, JTextPane m) {
+		socket = s;
+		try {
+			in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+		} catch (IOException e) {
+			e.printStackTrace();
+			try {
+				socket.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 		mes = m;
 	}
 	
-	/**
-	 * @wbp.parser.entryPoint
-	 */
 	public void run() {
+		boolean stillhere = true;
 		
-		while(true){
+		//On set un style normal.
+		SimpleAttributeSet style_normal = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(style_normal, "Calibri");
+		StyleConstants.setFontSize(style_normal, 10);
+		
+		//On set un style serveur.
+		SimpleAttributeSet style_serveur = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(style_serveur, "Calibri");
+		StyleConstants.setFontSize(style_serveur, 10);
+		StyleConstants.setForeground(style_serveur, Color.RED);
+		
+		while(stillhere){
 	        try {
-	        	//mes = Container.getInstance().getMes();
+	        	
+	        	/*
+				 * Récupération du style du document 
+				 */
+				StyledDocument doc = mes.getStyledDocument();
+				 
 	        	//On récupère le login envoyé par le serveur
 	        	login = in.readLine();
 		        // On récupère le message envoyé par le serveur
 				message = in.readLine();
 				//On l'affiche
 				
+				//Si message et login null en même temps ça veut dire que le client est parti.
+				if(message == null) {
+					/*
+					 * Insertion d'une chaine de caractères dans le document
+					 */
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+					String texte_date = sdf.format(new Date());
+					
+					doc.insertString(doc.getLength(), "[" +texte_date+"] Serveur > Ping TimeOut ...\n", style_serveur);
+					System.out.println("[" +texte_date+"] Serveur > Ping TimeOut ...");
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						System.out.println("Can't sleep");
+					}
+					doc.insertString(doc.getLength(), "[" +texte_date+"] Serveur > Déconnexion.\n", style_serveur);
+					System.out.println("[" +texte_date+"] Serveur > Déconnexion");
+					mes.setStyledDocument(doc);
+					socket.close();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						System.out.println("Can't sleep");
+					}
+					System.exit(-1);
+					stillhere = false;
+					break;
+				}
 				//On calcule la couleur du pseudo en RGB.
 				//int hc = hashCode();
 				//int[] colors = hashToColor(hc);
 				
-				//On set un style normal.
-				SimpleAttributeSet style_normal = new SimpleAttributeSet();
-				StyleConstants.setFontFamily(style_normal, "Calibri");
-				StyleConstants.setFontSize(style_normal, 10);
+				
 				//StyleConstants.setForeground(style_normal, new Color(colors[0], colors[1], colors[2]));
 				
-				/*
-				 * Récupération du style du document 
-				 */
-				StyledDocument doc = mes.getStyledDocument();
+				
 				
 				/*
 				 * Insertion d'une chaine de caractères dans le document
@@ -69,7 +116,13 @@ public class ReceptionClientdepuisServeur extends Thread implements Runnable {
 				mes.setStyledDocument(doc);
 		    } 
 	        catch (IOException e) {	
-				e.printStackTrace();
+	        	System.err.println("Fermeture socket dans receptionclientdepuisserveur");
+	        	try {
+					socket.close();
+					System.exit(0);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 	        } 
 	        catch (BadLocationException e) {
 				e.printStackTrace();

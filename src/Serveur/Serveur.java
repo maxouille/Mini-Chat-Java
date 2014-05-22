@@ -7,10 +7,10 @@ import java.util.Vector;
 public class Serveur {
 	public static ServerSocket ss = null;
 	public static Thread t;
-	public Vector<PrintWriter> SocketVector = null;
+	public Vector<Couple> SocketVector = null;
 	
 	public static void main(String[] args) {
-		Vector<PrintWriter> SocketVector = new Vector<PrintWriter>();
+		Vector<Couple> SocketVector = new Vector<Couple>();
 		try {
 			// On créé une nouvelle socket sur le port passé en argument.
 			ss = new ServerSocket(2009);

@@ -13,10 +13,10 @@ public class Authentification implements Runnable {
 	private String login = "User", pass =  "";
 	public boolean authentifier = false;
 	public Thread t2;
-	private Vector<PrintWriter> SocketVector = null;
+	private Vector<Couple> SocketVector = null;
 	
 	
-	public Authentification(Socket s, Vector<PrintWriter> sv) {
+	public Authentification(Socket s, Vector<Couple> sv) {
 		 socket = s;
 		 SocketVector = sv;
 	}
@@ -39,7 +39,7 @@ public class Authentification implements Runnable {
 				// On check le login/pass
 				if(isValid(login, pass)){
 					//On ajoute la socket au vector contenant les sockets de tous les membres
-					SocketVector.add(out);
+					SocketVector.add(new Couple(socket, login));
 					//On envoie au client "connecte"
 					out.println("connecte");
 					out.flush();
@@ -59,6 +59,11 @@ public class Authentification implements Runnable {
 		} 
 		catch (IOException e) {
 			System.err.println(login+" ne répond pas !");
+			try {
+				socket.close();
+			} catch (IOException e1) {
+				System.err.println("Fermeture de la socket dans identification");
+			}
 		}
 	}
 	

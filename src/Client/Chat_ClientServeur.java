@@ -12,7 +12,6 @@ import java.net.*;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -39,13 +38,14 @@ public class Chat_ClientServeur implements Runnable {
 
 	private Socket socket;
 	private PrintWriter out = null;
-	private BufferedReader in = null;
-	private Thread t3;
-	private String login = "User";
+	private Thread t3, t4;
 	private JTextField txtMessage;
 	private JPanel contentPane;
 	private JFrame chat = null;
 	private static JTextPane mes = null;
+	private JLabel txtLogin = null;
+	private String login = "USer";
+	private JTextPane ConnectedPane;
 	
 	public Chat_ClientServeur(Socket s, String l){
 		socket = s;
@@ -79,32 +79,49 @@ public class Chat_ClientServeur implements Runnable {
 		mntmExit.setAction(quitAction);
 		menuBar.add(mntmExit);
 		
-		Component horizontalGlue = Box.createHorizontalGlue();
-		menuBar.add(horizontalGlue);
-		
 		/** MESSAGE BAR **/
+		
+		
+		/** PARTIE GAUCHE **/
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setDividerLocation(310);
-		contentPane.add(splitPane, BorderLayout.SOUTH);
 		
+		// PARTIE GAUCHE SPLITPANE
+		JSplitPane splitPane2 = new JSplitPane();
+		
+		//PARTIE GAUCHE SPLITPANE2
+		txtLogin = new JLabel(" "+login+" : ");
+		splitPane2.setLeftComponent(txtLogin);
+		
+		//PARTIE DROITE SPLITPANE2
 		txtMessage = new JTextField();
 		txtMessage.setToolTipText("Message");
-		splitPane.setLeftComponent(txtMessage);
+		splitPane2.setRightComponent(txtMessage);
 		txtMessage.setColumns(10);
 		txtMessage.addActionListener(new SendAction());
 		
+		splitPane.setLeftComponent(splitPane2);
+		
+		//PARTIE DROITE SPLITPANE
 		JButton btnEnvoyer = new JButton("Envoyer");
 		splitPane.setRightComponent(btnEnvoyer);
 		btnEnvoyer.addActionListener(new SendAction());
 		
-		/** PARTIE GAUCHE **/
+		contentPane.add(splitPane, BorderLayout.SOUTH);
+		
+		
 		JPanel Connected = new JPanel();
 		Connected.setBorder(new LineBorder(Color.BLACK));
 		Connected.setPreferredSize(new Dimension(100,100));
 		contentPane.add(Connected, BorderLayout.WEST);
+		Connected.setLayout(new BorderLayout(0, 0));
 		
 		JLabel lblConnected = new JLabel("Connected");
-		Connected.add(lblConnected);
+		lblConnected.setAlignmentX(Component.CENTER_ALIGNMENT);
+		Connected.add(lblConnected, BorderLayout.NORTH);
+		
+		ConnectedPane = new JTextPane();
+		Connected.add(ConnectedPane);
 		
 		/** PARTIE DROITE **/
 		JPanel Admin = new JPanel();
@@ -198,11 +215,12 @@ public class Chat_ClientServeur implements Runnable {
 		try {
 			// On créé un flux d'entré pour recevoir et un flux de sortie pour écrire.	
 			out = new PrintWriter(socket.getOutputStream());
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			
-			t3 = new Thread(new ReceptionClientdepuisServeur(in, mes));
+			t3 = new Thread(new ReceptionClientdepuisServeur(socket, mes));
 			t3.start();
 			
+			//t4 = new Thread(new ConnectedRefresh(socket, ConnectedPane));
+			//t4.start();
 			/*while(true) {
 				mes = Container.getInstance().getMes();
 			}*/
@@ -358,9 +376,6 @@ public class Chat_ClientServeur implements Runnable {
 			//On récupère ce qu'on vient d'écrire
 			String message = txtMessage.getText();
 			if (!message.equals("")) {
-				//On envoie notre login au serveur
-				out.println(login);
-				out.flush();
 				//On envoie le message au serveur
 				out.println(message);
 				out.flush();

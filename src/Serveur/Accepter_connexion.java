@@ -9,11 +9,11 @@ public class Accepter_connexion implements Runnable{
 
 	private ServerSocket socketserver = null;
 	private Socket socket = null;
-	private Vector<PrintWriter> SocketVector = null;
+	private Vector<Couple> SocketVector = null;
 
 	public Thread t1;
 	
-	public Accepter_connexion (ServerSocket ss, Vector<PrintWriter> sv){
+	public Accepter_connexion (ServerSocket ss, Vector<Couple> sv){
 		socketserver = ss;
 		SocketVector = sv;
 	}
@@ -26,7 +26,7 @@ public class Accepter_connexion implements Runnable{
 			//instruction bloquante : tant qu'il n'y a pas de client on reste bloqué
 			socket = socketserver.accept();
 			//Il y a un client d'arrivé
-			System.out.println("Un zéro veut se connecter  ");
+			System.out.println("Un client veut se connecter  ");
 			
 			//On créé un nouveau Thread pour l'authentification.
 			t1 = new Thread(new Authentification(socket, SocketVector));
