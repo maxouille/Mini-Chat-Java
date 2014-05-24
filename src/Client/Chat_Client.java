@@ -34,7 +34,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.JScrollPane;
 
 
-public class Chat_ClientServeur implements Runnable {
+public class Chat_Client implements Runnable {
 
 	private Socket socket;
 	private PrintWriter out = null;
@@ -42,12 +42,12 @@ public class Chat_ClientServeur implements Runnable {
 	private JTextField txtMessage;
 	private JPanel contentPane;
 	private JFrame chat = null;
-	private static JTextPane mes = null;
-	private JLabel txtLogin = null;
-	private String login = "USer";
+	private static volatile JTextPane mes = null;
+	private static volatile JLabel txtLogin = null;
+	private static volatile String login;
 	private JTextPane ConnectedPane;
 	
-	public Chat_ClientServeur(Socket s, String l){
+	public Chat_Client(Socket s, String l){
 		socket = s;
 		login = l;
 		
@@ -110,7 +110,7 @@ public class Chat_ClientServeur implements Runnable {
 		contentPane.add(splitPane, BorderLayout.SOUTH);
 		
 		
-		JPanel Connected = new JPanel();
+		/*JPanel Connected = new JPanel();
 		Connected.setBorder(new LineBorder(Color.BLACK));
 		Connected.setPreferredSize(new Dimension(100,100));
 		contentPane.add(Connected, BorderLayout.WEST);
@@ -122,16 +122,16 @@ public class Chat_ClientServeur implements Runnable {
 		
 		ConnectedPane = new JTextPane();
 		Connected.add(ConnectedPane);
-		
+		*/
 		/** PARTIE DROITE **/
-		JPanel Admin = new JPanel();
+		/*JPanel Admin = new JPanel();
 		Admin.setBorder(new LineBorder(Color.BLACK));
 		Admin.setPreferredSize(new Dimension(100,100));
 		contentPane.add(Admin, BorderLayout.EAST);
 		
 		JLabel lblAdmin = new JLabel("Admin");
 		Admin.add(lblAdmin);
-		
+		*/
 		/** PARTIE CENTRALE **/
 		JPanel Chat = new JPanel();
 		Chat.setLayout(new BoxLayout(Chat, BoxLayout.PAGE_AXIS));
@@ -160,9 +160,7 @@ public class Chat_ClientServeur implements Runnable {
 		StyleConstants.setAlignment(centrer, StyleConstants.ALIGN_LEFT);
 		
 		try {
-			/*
-			 * Récupération du style du document 
-			 */
+			//Récupération du style du document 
 			StyledDocument doc = mes.getStyledDocument();
 			
 			/*
@@ -184,6 +182,7 @@ public class Chat_ClientServeur implements Runnable {
 		catch (BadLocationException e) {
 			e.printStackTrace();
 		}
+		
 		Chat.add(mes);
 		
 		scrollPane.getViewport().setViewSize(mes.getPreferredSize());
@@ -216,21 +215,18 @@ public class Chat_ClientServeur implements Runnable {
 			// On créé un flux d'entré pour recevoir et un flux de sortie pour écrire.	
 			out = new PrintWriter(socket.getOutputStream());
 			
-			t3 = new Thread(new ReceptionClientdepuisServeur(socket, mes));
+			t3 = new Thread(new ReceptionMessages(socket, mes, txtLogin, login));
 			t3.start();
 			
 			//t4 = new Thread(new ConnectedRefresh(socket, ConnectedPane));
 			//t4.start();
-			/*while(true) {
-				mes = Container.getInstance().getMes();
-			}*/
 		} 
 		catch (IOException e) {
 			System.err.println("Le serveur distant s'est déconnecté !");
 			try {
 				socket.close();
 			} catch (IOException e1) {
-				e1.printStackTrace();
+				System.err.println("Erreur fermeture socket dans chat_clientserveur");
 			}
 		}
 	}
@@ -277,7 +273,6 @@ public class Chat_ClientServeur implements Runnable {
 			 */
 			try {
 				//On ferme la socket
-				System.out.println("On ferme la socket");
 				socket.close();
 			} 
 			catch (IOException e1) {
@@ -328,11 +323,16 @@ public class Chat_ClientServeur implements Runnable {
 			 * sortir avec un System.exit() (pas très propre, mais fonctionne)
 			 */
 			try {
+				//On cache le chat
+				chat.setVisible(false);
+				chat.dispose();
 				//On ferme la socket
 				socket.close();
+				//On relance la fenetre de connexion
+				new Client();	
 			} 
 			catch (IOException e1) {
-				e1.printStackTrace();
+				System.err.println("Erreur fermeture socket disconnect");
 			}
 		}
 	}
@@ -351,18 +351,13 @@ public class Chat_ClientServeur implements Runnable {
 		 */
 		public SendAction() {
 			putValue(NAME, "Send");
-			/*
-			 * Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
-			 * 	= InputEvent.CTRL_MASK on win/linux
-			 *  = InputEvent.META_MASK on mac os
-			 */
 			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
 					Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 			putValue(LARGE_ICON_KEY,
 					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/Black.png"));
 			putValue(SMALL_ICON,
 					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/Black_small.png"));
-			putValue(SHORT_DESCRIPTION, "Disconnects to the server");
+			putValue(SHORT_DESCRIPTION, "Send message to the server");
 		}
 
 		/**
@@ -385,7 +380,7 @@ public class Chat_ClientServeur implements Runnable {
 	}
 	
 	/**
-	 * Action pour quitter l'application
+	 * Action pour effacer les messages
 	 */
 	private class ClearAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
@@ -398,11 +393,6 @@ public class Chat_ClientServeur implements Runnable {
 		public ClearAction()
 		{
 			putValue(NAME, "Clear");
-			/*
-			 * Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
-			 * 	= InputEvent.CTRL_MASK on win/linux
-			 *  = InputEvent.META_MASK on mac os
-			 */
 			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q,
 					Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 			putValue(LARGE_ICON_KEY,
@@ -419,10 +409,6 @@ public class Chat_ClientServeur implements Runnable {
 		 */
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			/*
-			 * Action à effectuer lorsque l'action "quit" est cliquée :
-			 * sortir avec un System.exit() (pas très propre, mais fonctionne)
-			 */
 			mes.setText("");
 		}
 	}

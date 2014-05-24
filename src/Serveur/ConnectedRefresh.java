@@ -8,10 +8,10 @@ import java.util.Vector;
 public class ConnectedRefresh implements Runnable {
 
 	private Socket socket;
-	private Vector<Couple> socketVector;
+	private CoupleVector socketVector;
 	private ObjectOutputStream out;
 	
-	public ConnectedRefresh( Socket s, Vector<Couple> sv) {
+	public ConnectedRefresh( Socket s, CoupleVector sv) {
 		socket = s;
 		socketVector = sv;
 		try {

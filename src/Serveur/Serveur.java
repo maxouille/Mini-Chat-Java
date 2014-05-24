@@ -2,15 +2,14 @@ package Serveur;
 
 import java.io.*;
 import java.net.*;
-import java.util.Vector;
 
 public class Serveur {
 	public static ServerSocket ss = null;
-	public static Thread t;
-	public Vector<Couple> SocketVector = null;
+	private static Thread t;
+	public static volatile CoupleVector SocketVector = null;
 	
 	public static void main(String[] args) {
-		Vector<Couple> SocketVector = new Vector<Couple>();
+		CoupleVector SocketVector = new CoupleVector();
 		try {
 			// On créé une nouvelle socket sur le port passé en argument.
 			ss = new ServerSocket(2009);
@@ -18,8 +17,20 @@ public class Serveur {
 			System.out.println("Le serveur est à l'écoute du port "+ss.getLocalPort());
 			
 			// On créé un nouveau thread pour gérer les connexions des clients.
-			t = new Thread(new Accepter_connexion(ss, SocketVector));
-			t.start();
+			/*t = new Thread(new Accepter_connexion(ss, SocketVector));
+			t.start();*/
+			
+			//Tant que true
+			while(true){
+				//instruction bloquante : tant qu'il n'y a pas de client on reste bloqué
+				Socket socket = ss.accept();
+				//Il y a un client d'arrivé
+				System.out.println("Un client veut se connecter");
+				
+				//On créé un nouveau Thread pour l'authentification.
+				t = new Thread(new Authentification(socket, SocketVector));
+				t.start();
+			}
 			
 		} 
 		catch (IOException e) {

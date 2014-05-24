@@ -28,7 +28,7 @@ public class Connexion extends JFrame implements Runnable {
 
 	private Socket socket = null;
 	private Thread t2;
-	private String login = "User";
+	private static String login = "User";
 	private char[] pass = null;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
@@ -158,11 +158,11 @@ public class Connexion extends JFrame implements Runnable {
 			 * Action à effectuer lorsque l'action "quit" est cliquée :
 			 * sortir avec un System.exit() (pas très propre, mais fonctionne)
 			 */
-			System.out.println("pass récupéré");
+			System.out.println("Password récupéré");
 			login = Name.getText();
 			pass = Pass.getPassword();
 			
-			if(!connect ){
+			if(!connect) {
 				//On envoie le login au serveur
 				out.println(login);
 				out.flush();
@@ -172,17 +172,19 @@ public class Connexion extends JFrame implements Runnable {
 				//Si ce qu'on recoit du serveur est "connecte"
 				try {
 					if(in.readLine().equals("connecte")){ 
-						System.out.println("On lance le chat");
+						System.out.println("Lancement du chat...");
 						//On lance un thread qui s'occupe du chat en lui-même
-						t2 = new Thread(new Chat_ClientServeur(socket, login));
+						t2 = new Thread(new Chat_Client(socket, login));
 						t2.start();
+						
 						if (connexion != null) {
 							connexion.setVisible(false);
 							connexion.dispose();
 						}
 					}
 					else {
-						System.err.println("Vos informations sont incorrectes "); 
+						System.err.println("Vos informations sont incorrectes");
+						Pass.setText("");
 					}
 				} 
 				catch (IOException e1) {

@@ -2,7 +2,6 @@ package Serveur;
 
 import java.net.*;
 import java.util.Scanner;
-import java.util.Vector;
 import java.io.*;
 
 public class Authentification implements Runnable {
@@ -11,12 +10,12 @@ public class Authentification implements Runnable {
 	private PrintWriter out = null;
 	private BufferedReader in = null;
 	private String login = "User", pass =  "";
-	public boolean authentifier = false;
-	public Thread t2;
-	private Vector<Couple> SocketVector = null;
+	private boolean authentifier = false;
+	private Thread t2;
+	private static volatile CoupleVector SocketVector = null;
 	
 	
-	public Authentification(Socket s, Vector<Couple> sv) {
+	public Authentification(Socket s, CoupleVector sv) {
 		 socket = s;
 		 SocketVector = sv;
 	}
@@ -54,7 +53,7 @@ public class Authentification implements Runnable {
 			}
 			
 			//On créé un nouveau thread qui exécutera le chat en lui même.
-			t2 = new Thread(new Chat_ClientServeur(socket,login, SocketVector));
+			t2 = new Thread(new Chat_Serveur(socket,login, SocketVector));
 			t2.start();	
 		} 
 		catch (IOException e) {
