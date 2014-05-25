@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -97,24 +98,19 @@ public class Chat_Serveur implements Runnable {
 									break;
 								}
 							}
-						}
-						//ELSEIF WHOAMI
-					
+						}					
 						else {
 							boolean checked = check_admin(message);
-							
 							//Si c'est pas une commande admin on affiche le message classique.
 							if(!checked) {
 								//On l'affiche sur la console serveur
 								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 								String texte_date = sdf.format(new Date());
 								System.out.println("[" +texte_date+"] "+ login+" > "+message);
-								
 								//On envoie le message à tous les clients
 								sendAll(login, message);
 							}
 						}
-						
 					}
 					catch (IndexOutOfBoundsException e) {
 						System.out.println("Erreur split serveur");
@@ -128,22 +124,15 @@ public class Chat_Serveur implements Runnable {
 				} catch (IOException e1) {
 					System.out.println("Erreur de fermeture de la socket dans chat_clientserveur");
 				}
-				
 			}
 		}		
 	}
 	
 	public boolean check_admin(String message) {
 		//On regarde si le message commence par un /
-		Pattern p = Pattern.compile("^/.*$");
-		Matcher m = p.matcher(message);
-		//Si on match un truc avec /
-		if(m.matches()) {
+		if (match("^/.*$", message)) {
 			//Si c'est /nick
-			Pattern p_nick = Pattern.compile("^/nick .*$");
-			Matcher m_nick = p_nick.matcher(message);
-			//Si on match un message commencant par /nick
-			if(m_nick.matches()) {
+			if(match("^/nick .*$", message)) {
 				//On récupère le nouveau pseudo
 				String newPseudo = message.substring(6);
 				System.out.println("New login : "+newPseudo);
@@ -159,53 +148,48 @@ public class Chat_Serveur implements Runnable {
 						sendAll("nick/"+oldLogin, newPseudo);
 					}
 				}
-			}// Ca fonctionne comme il faut
-			
+			}
 			//Si c'est /ban
-			Pattern p_ban = Pattern.compile("^/ban .*$");
-			Matcher m_ban = p_ban.matcher(message);
-			if(m_ban.matches()) {
+			if (match("^/ban .*$", message)) {
 				System.out.println("On a matché un ban");
-				// On récupère le pseudo
-				String pseudo = message.substring(5);
-				System.out.println("Pseudo à ban : "+pseudo);
-				for(int i = 0; i < SocketVector.size(); i++) {
-					//On cherche la socet associée au login
-					if(SocketVector.elementAt(i).getLogin().equals(pseudo)) {
-						System.out.println("Socket found with login "+pseudo);
-						/*try {
-							PrintWriter out = new PrintWriter(SocketVector.elementAt(i).getSocket().getOutputStream());
-							out.println("ban/");
-							out.flush();
-						} catch (IOException e) {
-							System.out.println("Erreur fermeture socket dans check_admin");
-						}*/
-						sendAll("ban/", pseudo);
-					}
+				/* On check si on est admin
+				 * c'est à dire qu'on est le premier connecté 
+				 * donc à l'emplacement SocketVector[0];
+				 */
+				if(isAdmin()) {
+					// On récupère le pseudo
+					String pseudo = message.substring(5);
+					System.out.println("Pseudo à ban : "+pseudo);
+					sendAll("ban/", pseudo);
+				}
+				else {
+					out.println("notadmin/"+login);
+					out.flush();
+					out.println("Vous n'avez pas les droits d'administrateur");
+					out.flush();
 				}
 			}
 			//Si c'est un /whoami
-			Pattern p_whoami = Pattern.compile("^/whoami .*$");
-			Matcher m_whoami = p_whoami.matcher(message);
-			if(m_whoami.matches()) {
+			if (match("^/whoami$", message)) {
 				System.out.println("On match whoami");
-				PrintWriter out = null;
-				try {
-					out = new PrintWriter(socket.getOutputStream());
-				} catch (IOException e) {
-					System.out.println("can't open outstream whoami");
-				}
-				if (out != null) {
-					out.println(login);
-					out.flush();
-					out.println(socket.getInetAddress().toString());
-					out.flush();
+				System.out.println("Pseudo pour whoami : "+login);
+				for(int i =0; i < SocketVector.size(); i++) {
+					if(SocketVector.elementAt(i).getLogin().equals(login)) {
+						Socket s = SocketVector.elementAt(i).getSocket();
+						InetAddress servaddr = s.getInetAddress();
+						int servport = s.getPort();
+						InetAddress myaddr = s.getLocalAddress();
+						int myport = s.getLocalPort();
+						System.out.println("Send message : "+servaddr+"s"+servport+"s"+myaddr+"s"+myport);
+						sendAll("whoami/"+login, servaddr+"s"+servport+"s"+myaddr+"s"+myport);
+						break;
+					}
 				}
 			}
 			return true;
 		}//fin du match avec /
-		return false;
-	}	 
+			return false;
+}	 
 	
 	public void sendAll(String login, String message) {
 		PrintWriter out2 = null;
@@ -231,34 +215,13 @@ public class Chat_Serveur implements Runnable {
 			  out2.flush();
 		}
 	}
+	public boolean isAdmin () {
+		return SocketVector.elementAt(0).getLogin().equals(login);
+	}
+	
+	public boolean match(String regex, String message) {
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(message);
+		return m.matches();
+	}
 }
-
-//On envoie à tout le monde l'ancien login et le nouveau
-/*PrintWriter out2 = null;
-
-for (int i = 0; i < SocketVector.size(); i++) {
-	  //On l'envoie au client correspondant au PrintWriter out.
-	  int nbsock = 0;
-	  Socket s = (SocketVector.elementAt(i)).getSocket();
-	  try {
-		  out2 = new PrintWriter(s.getOutputStream());
-	  }
-	  catch (IOException ex) {
-		  try {
-			(SocketVector.elementAt(nbsock)).getSocket().close();
-		} catch (IOException e) {
-			System.out.println("Erreur sendAll close socket");
-		}
-		  SocketVector.remove(nbsock);
-	  }
-	  if(SocketVector.elementAt(i).getLogin().equals(login)){
-		  out2.println("you"+login);
-	  }
-	  else {
-		  out2.println("nick2"+login);
-	  }
-	  out2.flush();
-	  out2.println(extract[1]);
-	  out2.flush();
-}*/
-//sendAll("nick2"+login, extract[1]);

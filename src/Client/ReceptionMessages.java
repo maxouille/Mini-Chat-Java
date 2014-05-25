@@ -100,10 +100,28 @@ public class ReceptionMessages extends Thread implements Runnable {
 								txtLogin.setText("");
 								txtLogin.setText(" "+newLogin+" : ");
 								myLogin = newLogin;
+								//On affiche dans le chat
+								System.out.println("Vous avez changé votre pseudo en "+myLogin);
+								try {
+									doc.insertString(doc.getLength(), "Vous avez changé son pseudo en "+myLogin+"\n", style_serveur);
+								} catch (BadLocationException e) {
+									System.err.println("Erreur ecriture doc client");
+								}
+								mes.setStyledDocument(doc);
 								//On envoi le nouveau login au serveur
 								PrintWriter out = new PrintWriter(socket.getOutputStream());
 								out.println("NICK/"+myLogin);
 								out.flush();
+							}
+							else {
+								//On affiche dans le chat
+								System.out.println(oldLogin+" a changé son pseudo en "+newLogin);
+								try {
+									doc.insertString(doc.getLength(), oldLogin+" a changé son pseudo en "+newLogin+"\n", style_serveur);
+								} catch (BadLocationException e) {
+									System.err.println("Erreur ecriture doc client");
+								}
+								mes.setStyledDocument(doc);
 							}
 						}
 						else if (extract[0].equals("ban")) {
@@ -123,7 +141,38 @@ public class ReceptionMessages extends Thread implements Runnable {
 								System.exit(0);
 							}
 						}
-						//ELSEIF WHOAMI
+						else if (extract[0].equals("whoami")) {
+							String login = extract[1];
+							String[] extractMes;
+							try {
+								extractMes = message.split("s");
+								String servaddr = extractMes[0];
+								String servport = extractMes[1];
+								String myaddr = extractMes[2];
+								String myport = extractMes[3];
+								System.out.println("whoami de l'user "+login);
+								//Si on est la personne bannie
+								if(myLogin.equals(login)) {
+									try {
+										doc.insertString(doc.getLength(), "Server address : "+servaddr+"\n"+"Server Port : "+servport+"\n"+"My address : "+myaddr+"\n"+"My Port : "+myport+"\n", style_serveur);
+									} catch (BadLocationException e) {
+										System.err.println("Erreur ecriture doc client");
+									}
+									mes.setStyledDocument(doc);
+								}
+							}
+							catch(IndexOutOfBoundsException e) {
+								System.err.println("erreur try mes");
+							}
+						}
+						else if (extract[0].equals("notadmin")) {
+							try {
+								doc.insertString(doc.getLength(), message+"\n", style_serveur);
+							} catch (BadLocationException e) {
+								System.err.println("Erreur ecriture doc client");
+							}
+							mes.setStyledDocument(doc);							
+						}
 						else {
 							add2mes(login, message, doc, style_normal);
 						}
