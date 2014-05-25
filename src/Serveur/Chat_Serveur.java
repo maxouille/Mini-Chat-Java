@@ -118,6 +118,7 @@ public class Chat_Serveur implements Runnable {
 				}
 		    } 
 	        catch (IOException e) {	
+	        	e.printStackTrace();
 				System.err.println("Erreur chat_serveur dans run.");
 				try {
 					socket.close();

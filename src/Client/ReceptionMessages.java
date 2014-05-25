@@ -52,14 +52,13 @@ public class ReceptionMessages extends Thread implements Runnable {
 		SimpleAttributeSet style_normal = new SimpleAttributeSet();
 		StyleConstants.setFontFamily(style_normal, "Calibri");
 		StyleConstants.setFontSize(style_normal, 10);
-		
+    	  	
 		//On set un style serveur.
 		SimpleAttributeSet style_serveur = new SimpleAttributeSet();
 		StyleConstants.setFontFamily(style_serveur, "Calibri");
 		StyleConstants.setFontSize(style_serveur, 10);
 		StyleConstants.setForeground(style_serveur, Color.RED);
 		
-		String saveLogin = "";
 		while(stillhere){
 	        try {
 				// Récupération du style du document 
@@ -200,43 +199,11 @@ public class ReceptionMessages extends Thread implements Runnable {
 	        }
 		}
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		for(int i = 0; i < login.length(); i++) {
-			result = prime * result + ((new String(""+login.charAt(i)+"")).hashCode());
-		}
-		
-		return result;
-	}
-	
-	public int[] hashToColor (int hashcode) {
-		System.out.println(hashcode);
-		String hc = new String(""+hashcode+"");
-		System.out.println(hc);
-		String r = hc.substring(0, 2);
-		String g = hc.substring(3, 5);
-		String b = hc.substring(6, 8);
-		int[] res = new int[3];
-		res[0] = Integer.parseInt(r);
-		res[1] = Integer.parseInt(g);
-		res[2] = Integer.parseInt(b);
-		return res;
-	}
-	
-	public void nickColor() {
-		//On calcule la couleur du pseudo en RGB.
-		//int hc = hashCode();
-		//int[] colors = hashToColor(hc);
-		//StyleConstants.setForeground(style_normal, new Color(colors[0], colors[1], colors[2]));
-	}
 	
 	public void add2mes(String login, String message, StyledDocument doc, SimpleAttributeSet style_normal) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 		String texte_date = sdf.format(new Date());
-		
+		nickColor(login, style_normal);
 		try {
 			doc.insertString(doc.getLength(), "[" +texte_date+"] "+ login+" > "+message+"\n", style_normal);
 		} catch (BadLocationException e) {
@@ -279,5 +246,27 @@ public class ReceptionMessages extends Thread implements Runnable {
 			System.out.println("Can't sleep");
 		}
 		System.exit(-1);
+	}
+	
+	public int[] hashToColor (int hashcode) {
+		String bin = Integer.toBinaryString(hashcode);
+		while(bin.length()<32) {
+			bin += "0";
+		}	
+		String r = bin.substring(0, 7);
+		String g = bin.substring(8, 15);
+		String b = bin.substring(16, 23);
+		int[] res = new int[3];
+		res[0] = Integer.parseInt(r, 2);
+		res[1] = Integer.parseInt(g, 2);
+		res[2] = Integer.parseInt(b, 2);
+		return res;
+	}
+	
+	public void nickColor(String login, SimpleAttributeSet style_normal) {
+		//On calcule la couleur du pseudo en RGB.
+		int hc = login.hashCode();
+		int[] colors = hashToColor(hc);
+		StyleConstants.setForeground(style_normal, new Color(colors[0], colors[1], colors[2]));
 	}
 }
