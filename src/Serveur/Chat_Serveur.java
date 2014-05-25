@@ -160,7 +160,7 @@ public class Chat_Serveur implements Runnable {
 					// On récupère le pseudo
 					String pseudo = message.substring(5);
 					System.out.println("Pseudo à ban : "+pseudo);
-					sendAll("ban/", pseudo);
+					sendAll("ban/"+pseudo, SocketVector.elementAt(0).getLogin());
 				}
 				else {
 					out.println("notadmin/"+login);
@@ -173,22 +173,19 @@ public class Chat_Serveur implements Runnable {
 			if (match("^/whoami$", message)) {
 				System.out.println("On match whoami");
 				System.out.println("Pseudo pour whoami : "+login);
-				for(int i =0; i < SocketVector.size(); i++) {
-					if(SocketVector.elementAt(i).getLogin().equals(login)) {
-						Socket s = SocketVector.elementAt(i).getSocket();
-						InetAddress servaddr = s.getInetAddress();
-						int servport = s.getPort();
-						InetAddress myaddr = s.getLocalAddress();
-						int myport = s.getLocalPort();
-						System.out.println("Send message : "+servaddr+"s"+servport+"s"+myaddr+"s"+myport);
-						sendAll("whoami/"+login, servaddr+"s"+servport+"s"+myaddr+"s"+myport);
-						break;
-					}
-				}
+				InetAddress servaddr = socket.getInetAddress();
+				int servport = socket.getPort();
+				InetAddress myaddr = socket.getLocalAddress();
+				int myport = socket.getLocalPort();
+				System.out.println("Send message : "+servaddr+"s"+servport+"s"+myaddr+"s"+myport);
+				out.println("whoami/");
+				out.flush();
+				out.println(servaddr+"s"+servport+"s"+myaddr+"s"+myport);
+				out.flush();
 			}
 			return true;
 		}//fin du match avec /
-			return false;
+		return false;
 }	 
 	
 	public void sendAll(String login, String message) {
@@ -209,7 +206,12 @@ public class Chat_Serveur implements Runnable {
 				}
 				  SocketVector.remove(nbsock);
 			  }
-			  out2.println(login);
+			  if(isAdmin(login)) {
+				  out2.println("@"+login);
+			  }
+			  else {
+				  out2.println(login);
+			  }
 			  out2.flush();
 			  out2.println(message);
 			  out2.flush();
@@ -217,6 +219,10 @@ public class Chat_Serveur implements Runnable {
 	}
 	public boolean isAdmin () {
 		return SocketVector.elementAt(0).getLogin().equals(login);
+	}
+	
+	public boolean isAdmin(String log) {
+		return SocketVector.elementAt(0).getLogin().equals(log);
 	}
 	
 	public boolean match(String regex, String message) {

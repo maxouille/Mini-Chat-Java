@@ -125,9 +125,11 @@ public class ReceptionMessages extends Thread implements Runnable {
 							}
 						}
 						else if (extract[0].equals("ban")) {
-							System.out.println("ban de l'user "+message);
+							String banned = extract[1];
+							String admin = message;
+							System.out.println("Ban de l'user "+ banned);
 							//Si on est la personne bannie
-							if(myLogin.equals(message)) {
+							if(myLogin.equals(banned)) {
 								//On cache le chat
 								chat.setVisible(false);
 								chat.dispose();
@@ -140,9 +142,16 @@ public class ReceptionMessages extends Thread implements Runnable {
 								socket.close();
 								System.exit(0);
 							}
+							else {
+								try {
+									doc.insertString(doc.getLength(), banned+ " a été banni par "+admin+"\n", style_serveur);
+								} catch (BadLocationException e) {
+									System.err.println("Erreur ecriture doc client");
+								}
+								mes.setStyledDocument(doc);
+							}
 						}
 						else if (extract[0].equals("whoami")) {
-							String login = extract[1];
 							String[] extractMes;
 							try {
 								extractMes = message.split("s");
@@ -150,16 +159,13 @@ public class ReceptionMessages extends Thread implements Runnable {
 								String servport = extractMes[1];
 								String myaddr = extractMes[2];
 								String myport = extractMes[3];
-								System.out.println("whoami de l'user "+login);
-								//Si on est la personne bannie
-								if(myLogin.equals(login)) {
-									try {
-										doc.insertString(doc.getLength(), "Server address : "+servaddr+"\n"+"Server Port : "+servport+"\n"+"My address : "+myaddr+"\n"+"My Port : "+myport+"\n", style_serveur);
-									} catch (BadLocationException e) {
-										System.err.println("Erreur ecriture doc client");
-									}
-									mes.setStyledDocument(doc);
+								System.out.println("whoami de l'user "+myLogin);
+								try {
+									doc.insertString(doc.getLength(), "Server address : "+servaddr+"\n"+"Server Port : "+servport+"\n"+"My address : "+myaddr+"\n"+"My Port : "+myport+"\n", style_serveur);
+								} catch (BadLocationException e) {
+									System.err.println("Erreur ecriture doc client");
 								}
+								mes.setStyledDocument(doc);
 							}
 							catch(IndexOutOfBoundsException e) {
 								System.err.println("erreur try mes");
@@ -274,42 +280,4 @@ public class ReceptionMessages extends Thread implements Runnable {
 		}
 		System.exit(-1);
 	}
-	
 }
-
-//else if(extract[0].equals("nick2")) {
-/* On sait que c'est un changement de pseudo donc on va récupéré :
-* login -> "nick2/"+ancien login
-* message -> nouveau login
-*/
-//Si on est la personne qui a changé de nick
-//ICI oldlogin vaut déjà le nouveau pseudo car on revient pour la deuxieme fois.
-/*	if(extract[1].equals(oldlogin)) {
-	//On affiche dans le chat
-	System.out.println(oldlogin+" a changé son pseudo en "+extract[1]);
-	try {
-		doc.insertString(doc.getLength(), extract[1]+" a changé son pseudo en "+message+"\n", style_serveur);
-	} catch (BadLocationException e) {
-		System.err.println("Erreur ecriture doc client");
-	}
-	mes.setStyledDocument(doc);
-}
-}*/
-/*else if(extract[0].equals("you")) {
-/* On sait que c'est un changement de pseudo donc on va récupéré :
-* login -> "nick2/"+ancien login
-* message -> nouveau login
-*/
-//Si on est la personne qui a changé de nick
-//ICI oldlogin vaut déjà le nouveau pseudo car on revient pour la deuxieme fois.
-/*if(extract[1].equals(oldlogin)) {
-	//On affiche dans le chat
-	try {
-		doc.insertString(doc.getLength(), "Vous avez changé votre pseudo en "+message+"\n", style_serveur);
-	} catch (BadLocationException e) {
-		System.err.println("Erreur ecriture doc client");
-	}
-	System.out.println("Vous avez changé votre pseudo en "+extract[1]+"\n");
-	mes.setStyledDocument(doc);
-}*/
-//}
