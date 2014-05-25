@@ -68,12 +68,13 @@ public class Chat_Serveur implements Runnable {
 				 * de login 
 				 */
 				else {
-					String[] extract = null;
+					String[] extract;
 					try {
+						/* On sépare le message en fonction des / */
 						extract = message.split("/");
-						if (extract[0].equals("NICK")) {
+						if (extract[0].equals("NICK")) {	
 							//On modifie le couple dans le socketVector
-							//Ici, lomagin est encore l'ancien login
+							//Ici, login est encore l'ancien login
 							for(int i = 0; i < SocketVector.size(); i++) {
 								//Si on trouve le couple correspondant
 								if(SocketVector.elementAt(i).getLogin().equals(login)) {
@@ -83,11 +84,12 @@ public class Chat_Serveur implements Runnable {
 							}
 							//On modifie le login associée à la socket.
 							login = extract[1];
+							
 						}
-						else if (extract[0].equals("BAN")) {
+						/*else if (extract[0].equals("BAN")) {
 							//ON FERME LA SOCKET
 							System.out.println("ban de l'user "+extract[1]);
-						}
+						}*/
 						//ELSEIF WHOAMI
 					
 						else {
@@ -221,3 +223,33 @@ public class Chat_Serveur implements Runnable {
 		}
 	}
 }
+
+//On envoie à tout le monde l'ancien login et le nouveau
+/*PrintWriter out2 = null;
+
+for (int i = 0; i < SocketVector.size(); i++) {
+	  //On l'envoie au client correspondant au PrintWriter out.
+	  int nbsock = 0;
+	  Socket s = (SocketVector.elementAt(i)).getSocket();
+	  try {
+		  out2 = new PrintWriter(s.getOutputStream());
+	  }
+	  catch (IOException ex) {
+		  try {
+			(SocketVector.elementAt(nbsock)).getSocket().close();
+		} catch (IOException e) {
+			System.out.println("Erreur sendAll close socket");
+		}
+		  SocketVector.remove(nbsock);
+	  }
+	  if(SocketVector.elementAt(i).getLogin().equals(login)){
+		  out2.println("you"+login);
+	  }
+	  else {
+		  out2.println("nick2"+login);
+	  }
+	  out2.flush();
+	  out2.println(extract[1]);
+	  out2.flush();
+}*/
+//sendAll("nick2"+login, extract[1]);

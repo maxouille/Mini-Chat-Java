@@ -22,13 +22,14 @@ public class ReceptionMessages extends Thread implements Runnable {
 	private Socket socket;
 	private static volatile JTextPane mes;
 	private String message = ""; 
-	private static volatile String login;
+	private static volatile String myLogin;
+	private String login;
 	private static volatile JLabel txtLogin;
 	
 	public ReceptionMessages(Socket s, JTextPane m, JLabel labelLog, String log) {
 		socket = s;
 		txtLogin = labelLog;
-		login = log;
+		myLogin = log;
 		mes = m;
 		try {
 			in = new BufferedReader(new InputStreamReader(s.getInputStream()));
@@ -55,14 +56,14 @@ public class ReceptionMessages extends Thread implements Runnable {
 		StyleConstants.setFontSize(style_serveur, 10);
 		StyleConstants.setForeground(style_serveur, Color.RED);
 		
-		String oldlogin = "";
+		String saveLogin = "";
 		while(stillhere){
 	        try {
 				// Récupération du style du document 
 				StyledDocument doc = mes.getStyledDocument();
 				
 				//On stocke l'ancien login
-				oldlogin = login;
+				//saveLogin = login;
 	        	//On récupère le login envoyé par le serveur
 	        	login = in.readLine();
 		        // On récupère le message envoyé par le serveur
@@ -78,66 +79,46 @@ public class ReceptionMessages extends Thread implements Runnable {
 				/* Si le login qu'on reçoit commence par /nick */
 				else {
 					String[] extract;
-					
 					try {
-						extract = login.split("/"); 
+						extract = login.split("/");
 						if(extract[0].equals("nick")) {
 							 /* On sait que c'est un changement de pseudo donc on va récupéré :
 							 * login -> "nick/"+ancien login
 							 * message -> nouveau login
 							 */
-							System.out.println("New login : "+message);
-							System.out.println("login stocké : "+oldlogin+" login envoyé : " +extract[1]);
+							String newLogin = message;
+							String oldLogin = extract[1];
+							System.out.println("New login : "+newLogin);
+							//System.out.println("login stocké : "+oldLogin+" ancien login envoyé : " + oldLogin);
 							//Si on est la personne qui a changé de nick
-							if(login.substring(5).equals(oldlogin)) {
+							if(oldLogin.equals(myLogin)) {
 								System.out.println("On a matché un ancien login");
 								//On change le JLabel en bas à gauche
 								txtLogin.setText("");
-								txtLogin.setText(" "+message+" : ");
-								login = message;
+								txtLogin.setText(" "+newLogin+" : ");
+								myLogin = newLogin;
 								//On envoi le nouveau login au serveur
 								PrintWriter out = new PrintWriter(socket.getOutputStream());
-								out.println("NICK/"+login);
+								out.println("NICK/"+myLogin);
 								out.flush();
 							}
 						}
-						else if (extract[0].equals("ban")) {
+						/*else if (extract[0].equals("ban")) {
 							System.out.println("ban de l'user "+extract[1]);
-						}
+						}*/
 						//ELSEIF WHOAMI
 						else {
 							add2mes(login, message, doc, style_normal);
 						}
 					}
 					catch (IndexOutOfBoundsException e) {
-						System.err.println("Erreur split client");
-					}
-					
-					//On recoit dans login l'ancien login de la personne
-					//Dans message le nouveau login
-					/*if(message.substring(0, 2).equals("/s")) {
-						if(oldlogin.equals(login)) {
-							//On affiche dans le chat
-							doc.insertString(doc.getLength(), "Vous avez changé votre pseudo en "+login+"\n", style_serveur);
-							System.out.println("Vous avez changé votre pseudo en "+login+"\n");
-							mes.setStyledDocument(doc);
-						}
-						else {
-							System.out.println(oldlogin+" a changé son pseudo en "+login);
-							doc.insertString(doc.getLength(), oldlogin+" a changé son pseudo en "+login+"\n", style_serveur);
-							mes.setStyledDocument(doc);
-						}
-					}
-					else {
+						System.err.println("erreur");
 						add2mes(login, message, doc, style_normal);
 					}
-					//TODO : /ban et /whoami
-				}	*/			
-
 				} //FIN DU ELSE MESSAGE==NULL
 	        }//FIN TRY
 	        catch (IOException e) {	
-	        	System.err.println("Fermeture socket dans receptionclientdepuisserveur");
+	        	System.err.println("Fermeture socket dans ReceptionMessages");
 	        	try {
 					socket.close();
 					System.exit(0);
@@ -229,3 +210,40 @@ public class ReceptionMessages extends Thread implements Runnable {
 	}
 	
 }
+
+//else if(extract[0].equals("nick2")) {
+/* On sait que c'est un changement de pseudo donc on va récupéré :
+* login -> "nick2/"+ancien login
+* message -> nouveau login
+*/
+//Si on est la personne qui a changé de nick
+//ICI oldlogin vaut déjà le nouveau pseudo car on revient pour la deuxieme fois.
+/*	if(extract[1].equals(oldlogin)) {
+	//On affiche dans le chat
+	System.out.println(oldlogin+" a changé son pseudo en "+extract[1]);
+	try {
+		doc.insertString(doc.getLength(), extract[1]+" a changé son pseudo en "+message+"\n", style_serveur);
+	} catch (BadLocationException e) {
+		System.err.println("Erreur ecriture doc client");
+	}
+	mes.setStyledDocument(doc);
+}
+}*/
+/*else if(extract[0].equals("you")) {
+/* On sait que c'est un changement de pseudo donc on va récupéré :
+* login -> "nick2/"+ancien login
+* message -> nouveau login
+*/
+//Si on est la personne qui a changé de nick
+//ICI oldlogin vaut déjà le nouveau pseudo car on revient pour la deuxieme fois.
+/*if(extract[1].equals(oldlogin)) {
+	//On affiche dans le chat
+	try {
+		doc.insertString(doc.getLength(), "Vous avez changé votre pseudo en "+message+"\n", style_serveur);
+	} catch (BadLocationException e) {
+		System.err.println("Erreur ecriture doc client");
+	}
+	System.out.println("Vous avez changé votre pseudo en "+extract[1]+"\n");
+	mes.setStyledDocument(doc);
+}*/
+//}
