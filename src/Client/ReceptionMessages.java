@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
@@ -25,12 +26,14 @@ public class ReceptionMessages extends Thread implements Runnable {
 	private static volatile String myLogin;
 	private String login;
 	private static volatile JLabel txtLogin;
+	private static volatile JFrame chat;
 	
-	public ReceptionMessages(Socket s, JTextPane m, JLabel labelLog, String log) {
+	public ReceptionMessages(Socket s, JTextPane m, JLabel labelLog, String log, JFrame c) {
 		socket = s;
 		txtLogin = labelLog;
 		myLogin = log;
 		mes = m;
+		chat = c;
 		try {
 			in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		} catch (IOException e) {
@@ -103,9 +106,23 @@ public class ReceptionMessages extends Thread implements Runnable {
 								out.flush();
 							}
 						}
-						/*else if (extract[0].equals("ban")) {
-							System.out.println("ban de l'user "+extract[1]);
-						}*/
+						else if (extract[0].equals("ban")) {
+							System.out.println("ban de l'user "+message);
+							//Si on est la personne bannie
+							if(myLogin.equals(message)) {
+								//On cache le chat
+								chat.setVisible(false);
+								chat.dispose();
+								//On envoie au serveur qu'on a quit (pour qu'il remove le couple dans socketserver
+								//On envoi le nouveau login au serveur
+								PrintWriter out = new PrintWriter(socket.getOutputStream());
+								out.println("BAN/"+myLogin);
+								out.flush();
+								//On quit
+								socket.close();
+								System.exit(0);
+							}
+						}
 						//ELSEIF WHOAMI
 						else {
 							add2mes(login, message, doc, style_normal);

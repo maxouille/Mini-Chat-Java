@@ -41,7 +41,7 @@ public class Chat_Client implements Runnable {
 	private Thread t3, t4;
 	private JTextField txtMessage;
 	private JPanel contentPane;
-	private JFrame chat = null;
+	private static volatile JFrame chat = null;
 	private static volatile JTextPane mes = null;
 	private static volatile JLabel txtLogin = null;
 	private static volatile String login;
@@ -215,7 +215,7 @@ public class Chat_Client implements Runnable {
 			// On créé un flux d'entré pour recevoir et un flux de sortie pour écrire.	
 			out = new PrintWriter(socket.getOutputStream());
 			
-			t3 = new Thread(new ReceptionMessages(socket, mes, txtLogin, login));
+			t3 = new Thread(new ReceptionMessages(socket, mes, txtLogin, login, chat));
 			t3.start();
 			
 			//t4 = new Thread(new ConnectedRefresh(socket, ConnectedPane));

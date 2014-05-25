@@ -86,10 +86,18 @@ public class Chat_Serveur implements Runnable {
 							login = extract[1];
 							
 						}
-						/*else if (extract[0].equals("BAN")) {
+						else if (extract[0].equals("BAN")) {
 							//ON FERME LA SOCKET
 							System.out.println("ban de l'user "+extract[1]);
-						}*/
+							for(int i = 0; i < SocketVector.size(); i++) {
+								//Si on trouve le couple correspondant
+								if(SocketVector.elementAt(i).getLogin().equals(extract[1])) {
+									SocketVector.remove(i);
+									System.out.println("Socket removed for user "+extract[1]);
+									break;
+								}
+							}
+						}
 						//ELSEIF WHOAMI
 					
 						else {
@@ -165,13 +173,14 @@ public class Chat_Serveur implements Runnable {
 					//On cherche la socet associée au login
 					if(SocketVector.elementAt(i).getLogin().equals(pseudo)) {
 						System.out.println("Socket found with login "+pseudo);
-						try {
+						/*try {
 							PrintWriter out = new PrintWriter(SocketVector.elementAt(i).getSocket().getOutputStream());
 							out.println("ban/");
 							out.flush();
 						} catch (IOException e) {
 							System.out.println("Erreur fermeture socket dans check_admin");
-						}					
+						}*/
+						sendAll("ban/", pseudo);
 					}
 				}
 			}
