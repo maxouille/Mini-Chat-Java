@@ -1,6 +1,14 @@
 package Client;
 
+/**
+ * 
+ * TODO : modifier taille du txtLogin en fonction de la taille du login
+ * 
+ */
+
+
 import java.awt.Color;
+import java.awt.Dimension;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +19,7 @@ import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
@@ -27,13 +36,17 @@ public class ReceptionMessages extends Thread implements Runnable {
 	private String login;
 	private static volatile JLabel txtLogin;
 	private static volatile JFrame chat;
+	private SimpleAttributeSet style_normal;
+	private SimpleAttributeSet style_serveur;
+	private static volatile JSplitPane splitPane2;
 	
-	public ReceptionMessages(Socket s, JTextPane m, JLabel labelLog, String log, JFrame c) {
+	public ReceptionMessages(Socket s, JTextPane m, JLabel labelLog, String log, JFrame c, JSplitPane sp) {
 		socket = s;
 		txtLogin = labelLog;
 		myLogin = log;
 		mes = m;
 		chat = c;
+		splitPane2 = sp;
 		try {
 			in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		} catch (IOException e) {
@@ -43,21 +56,20 @@ public class ReceptionMessages extends Thread implements Runnable {
 				System.err.println("Erreur fermeture socket catch création in");
 			}
 		}
+		//On set un style normal.
+		style_normal = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(style_normal, "Calibri");
+		StyleConstants.setFontSize(style_normal, 10);
+		nickColor(myLogin, style_normal);	  	
+		//On set un style serveur.
+		style_serveur = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(style_serveur, "Calibri");
+		StyleConstants.setFontSize(style_serveur, 10);
+		StyleConstants.setForeground(style_serveur, Color.RED);
 	}
 	
 	public void run() {
 		boolean stillhere = true;
-		
-		//On set un style normal.
-		SimpleAttributeSet style_normal = new SimpleAttributeSet();
-		StyleConstants.setFontFamily(style_normal, "Calibri");
-		StyleConstants.setFontSize(style_normal, 10);
-    	  	
-		//On set un style serveur.
-		SimpleAttributeSet style_serveur = new SimpleAttributeSet();
-		StyleConstants.setFontFamily(style_serveur, "Calibri");
-		StyleConstants.setFontSize(style_serveur, 10);
-		StyleConstants.setForeground(style_serveur, Color.RED);
 		
 		while(stillhere){
 	        try {
@@ -98,6 +110,7 @@ public class ReceptionMessages extends Thread implements Runnable {
 								//On change le JLabel en bas à gauche
 								txtLogin.setText("");
 								txtLogin.setText(" "+newLogin+" : ");
+								splitPane2.setDividerLocation((txtLogin.getText().length()-2)*10);
 								myLogin = newLogin;
 								//On affiche dans le chat
 								System.out.println("Vous avez changé votre pseudo en "+myLogin);
@@ -203,7 +216,7 @@ public class ReceptionMessages extends Thread implements Runnable {
 	public void add2mes(String login, String message, StyledDocument doc, SimpleAttributeSet style_normal) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 		String texte_date = sdf.format(new Date());
-		nickColor(login, style_normal);
+		
 		try {
 			doc.insertString(doc.getLength(), "[" +texte_date+"] "+ login+" > "+message+"\n", style_normal);
 		} catch (BadLocationException e) {
@@ -257,9 +270,9 @@ public class ReceptionMessages extends Thread implements Runnable {
 		String g = bin.substring(8, 15);
 		String b = bin.substring(16, 23);
 		int[] res = new int[3];
-		res[0] = Integer.parseInt(r, 2);
-		res[1] = Integer.parseInt(g, 2);
-		res[2] = Integer.parseInt(b, 2);
+		res[0] = (Integer.parseInt(r, 2)+128)%255;
+		res[1] = (Integer.parseInt(g, 2)+128)%255;
+		res[2] = (Integer.parseInt(b, 2)+128)%255;
 		return res;
 	}
 	

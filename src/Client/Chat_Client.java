@@ -46,6 +46,7 @@ public class Chat_Client implements Runnable {
 	private static volatile JLabel txtLogin = null;
 	private static volatile String login;
 	private JTextPane ConnectedPane;
+	private static volatile JSplitPane splitPane2;
 	
 	public Chat_Client(Socket s, String l){
 		socket = s;
@@ -87,7 +88,7 @@ public class Chat_Client implements Runnable {
 		splitPane.setDividerLocation(310);
 		
 		// PARTIE GAUCHE SPLITPANE
-		JSplitPane splitPane2 = new JSplitPane();
+		splitPane2 = new JSplitPane();
 		
 		//PARTIE GAUCHE SPLITPANE2
 		txtLogin = new JLabel(" "+login+" : ");
@@ -140,6 +141,7 @@ public class Chat_Client implements Runnable {
 		JScrollPane scrollPane = new JScrollPane(Chat);	
 		
 		mes = new JTextPane();
+		mes.setEditable(false);
 		
 		SimpleAttributeSet style_normal = new SimpleAttributeSet();
 		StyleConstants.setFontFamily(style_normal, "Calibri");
@@ -215,7 +217,7 @@ public class Chat_Client implements Runnable {
 			// On créé un flux d'entré pour recevoir et un flux de sortie pour écrire.	
 			out = new PrintWriter(socket.getOutputStream());
 			
-			t3 = new Thread(new ReceptionMessages(socket, mes, txtLogin, login, chat));
+			t3 = new Thread(new ReceptionMessages(socket, mes, txtLogin, login, chat, splitPane2));
 			t3.start();
 			
 			//t4 = new Thread(new ConnectedRefresh(socket, ConnectedPane));
