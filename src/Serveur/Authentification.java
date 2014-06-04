@@ -37,13 +37,19 @@ public class Authentification implements Runnable {
 	
 				// On check le login/pass
 				if(isValid(login, pass)){
-					//On ajoute la socket au vector contenant les sockets de tous les membres
-					SocketVector.add(new Couple(socket, login));
-					//On envoie au client "connecte"
-					out.println("connecte");
-					out.flush();
-					System.out.println(login +" vient de se connecter.");
-					authentifier = true;	
+					if (!alreadyConnected(login)) {
+						//On ajoute la socket au vector contenant les sockets de tous les membres
+						SocketVector.add(new Couple(socket, login));
+						//On envoie au client "connecte"
+						out.println("connecte");
+						out.flush();
+						System.out.println(login +" vient de se connecter.");
+						authentifier = true;	
+					}
+					else {
+						out.println("already");
+						out.flush();
+					}
 				}
 				// Si pas authentifié
 				else {
@@ -61,7 +67,7 @@ public class Authentification implements Runnable {
 			try {
 				socket.close();
 			} catch (IOException e1) {
-				System.err.println("Fermeture de la socket dans identification");
+				System.err.println("Fermeture de la so cket dans identification");
 			}
 		}
 	}
@@ -85,5 +91,17 @@ public class Authentification implements Runnable {
 			System.err.println("Le fichier n'existe pas !");
 		}
 		return connexion;
+	}
+	
+	private boolean alreadyConnected (String login) {
+		boolean connected = false;
+		for(int i = 0; i < SocketVector.size(); i++) {
+			if(SocketVector.elementAt(i).getLogin().equals(login)) {
+					connected = true;
+					break;
+			}
+		}
+		return connected;
+		
 	}
 }

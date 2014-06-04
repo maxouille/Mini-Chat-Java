@@ -1,14 +1,7 @@
 package Client;
 
-/**
- * 
- * TODO : modifier taille du txtLogin en fonction de la taille du login
- * 
- */
-
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,20 +49,20 @@ public class ReceptionMessages extends Thread implements Runnable {
 				System.err.println("Erreur fermeture socket catch création in");
 			}
 		}
+	}
+	
+	public void run() {
+		boolean stillhere = true;
+		
 		//On set un style normal.
 		style_normal = new SimpleAttributeSet();
 		StyleConstants.setFontFamily(style_normal, "Calibri");
 		StyleConstants.setFontSize(style_normal, 10);
-		nickColor(myLogin, style_normal);	  	
 		//On set un style serveur.
 		style_serveur = new SimpleAttributeSet();
 		StyleConstants.setFontFamily(style_serveur, "Calibri");
 		StyleConstants.setFontSize(style_serveur, 10);
 		StyleConstants.setForeground(style_serveur, Color.RED);
-	}
-	
-	public void run() {
-		boolean stillhere = true;
 		
 		while(stillhere){
 	        try {
@@ -216,6 +209,8 @@ public class ReceptionMessages extends Thread implements Runnable {
 	public void add2mes(String login, String message, StyledDocument doc, SimpleAttributeSet style_normal) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 		String texte_date = sdf.format(new Date());
+		
+		nickColor(login, style_normal);	  	
 		
 		try {
 			doc.insertString(doc.getLength(), "[" +texte_date+"] "+ login+" > "+message+"\n", style_normal);

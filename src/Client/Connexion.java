@@ -5,7 +5,7 @@ import java.awt.Toolkit;
 import java.io.*;
 
 import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
+import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -13,11 +13,11 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import javax.swing.JTextField;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.JButton;
@@ -39,6 +39,8 @@ public class Connexion extends JFrame implements Runnable {
 	private JPasswordField Pass;
 	private JFrame connexion = null;
 	private JButton btnConnexion;
+	private JLabel messageConnexion;
+	private JButton btnQuit;
 	
 	public Connexion(Socket s){
 		
@@ -66,7 +68,6 @@ public class Connexion extends JFrame implements Runnable {
 		JLabel Pseudo = new JLabel("Pseudo :");
 		GridBagConstraints gbc_Pseudo = new GridBagConstraints();
 		gbc_Pseudo.anchor = GridBagConstraints.WEST;
-		gbc_Pseudo.insets = new Insets(0, 0, 5, 5);
 		gbc_Pseudo.gridx = 0;
 		gbc_Pseudo.gridy = 0;
 		contentPane.add(Pseudo, gbc_Pseudo);
@@ -79,7 +80,7 @@ public class Connexion extends JFrame implements Runnable {
 		contentPane.add(Name, gbc_Name);
 		
 		Pass = new JPasswordField();
-		Pass.addActionListener(new OkAction());
+		Pass.addActionListener(okAction);
 		GridBagConstraints gbc_Pass = new GridBagConstraints();
 		gbc_Pass.gridx = 1;
 		gbc_Pass.gridy = 1;
@@ -95,18 +96,38 @@ public class Connexion extends JFrame implements Runnable {
 		contentPane.add(Password, gbc_Password);
 		
 		btnConnexion = new JButton("Connexion");
-		btnConnexion.addActionListener(new OkAction());
+		btnConnexion.setAction(okAction);
+		btnConnexion.addActionListener(okAction);
 		GridBagConstraints gbc_btnConnexion = new GridBagConstraints();
 		gbc_btnConnexion.gridwidth = 2;
-		gbc_btnConnexion.anchor = GridBagConstraints.NORTHEAST;
-		gbc_btnConnexion.gridheight = 3;
+		gbc_btnConnexion.anchor = GridBagConstraints.NORTHWEST;
+		gbc_btnConnexion.gridheight = 2;
 		gbc_btnConnexion.gridx = 2;
 		gbc_btnConnexion.gridy = 0;
 		
 		contentPane.add(btnConnexion, gbc_btnConnexion);
 		
+		btnQuit = new JButton("Quitter");
+		btnQuit.setAction(quitAction);
+		GridBagConstraints gbc_btnQuit = new GridBagConstraints();
+		gbc_btnQuit.anchor = GridBagConstraints.NORTHWEST;
+		gbc_btnQuit.gridwidth = 2;
+		gbc_btnQuit.gridx = 2;
+		gbc_btnQuit.gridy = 2;
+		contentPane.add(btnQuit, gbc_btnQuit);
+		
+		messageConnexion = new JLabel("Entrez vos identifiants");
+		GridBagConstraints gbc_messageConnexion = new GridBagConstraints();
+		gbc_messageConnexion.gridwidth = 4;
+		gbc_messageConnexion.gridx = 0;
+		gbc_messageConnexion.gridy = 3;
+		contentPane.add(messageConnexion, gbc_messageConnexion);
+		
 		connexion.setVisible(true);
 	}
+	
+	private final Action okAction = new OkAction();
+	private final Action quitAction = new QuitAction();
 	
 	public void run() {
 		
@@ -140,11 +161,11 @@ public class Connexion extends JFrame implements Runnable {
 			putValue(NAME, "Connect");
 			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
 					Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-			putValue(LARGE_ICON_KEY,
+			/*putValue(LARGE_ICON_KEY,
 					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/About.png"));
 			putValue(SMALL_ICON,
-					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/About_small.png"));
-			putValue(SHORT_DESCRIPTION, "Quits the application");
+					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/About_small.png"));*/
+			putValue(SHORT_DESCRIPTION, "Connect to the server");
 		}
 
 		/**
@@ -171,7 +192,8 @@ public class Connexion extends JFrame implements Runnable {
 				out.flush();
 				//Si ce qu'on recoit du serveur est "connecte"
 				try {
-					if(in.readLine().equals("connecte")){ 
+					String answer = in.readLine();
+					if(answer.equals("connecte")){ 
 						System.out.println("Lancement du chat...");
 						//On lance un thread qui s'occupe du chat en lui-même
 						t2 = new Thread(new Chat_Client(socket, login));
@@ -182,9 +204,17 @@ public class Connexion extends JFrame implements Runnable {
 							connexion.dispose();
 						}
 					}
+					else if (answer.equals("already")) {
+						System.err.println("Vous êtes déjà connecté");
+						Pass.setText("");
+						messageConnexion.setText("Vous êtes déjà connecté");
+						messageConnexion.setForeground(Color.RED);
+					}
 					else {
 						System.err.println("Vos informations sont incorrectes");
 						Pass.setText("");
+						messageConnexion.setText("Vos informations sont incorrectes");
+						messageConnexion.setForeground(Color.RED);
 					}
 				} 
 				catch (IOException e1) {
@@ -197,5 +227,50 @@ public class Connexion extends JFrame implements Runnable {
 				}
 			}// fin du !connect
 		}	
+	}
+	
+	/**
+	 * Action pour valider son mdp
+	 */
+	private class QuitAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * Constructeur de l'action pour quitter l'application.
+		 * Met en place le raccourci clavier, l'icône et la description
+		 * de l'action
+		 */
+		public QuitAction() {
+			putValue(NAME, "Quit");
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q,
+					Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+			/*putValue(LARGE_ICON_KEY,
+					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/About.png"));
+			putValue(SMALL_ICON,
+					new ImageIcon("/home/maxouille/Eclipse/Java/PCV/src/images/About_small.png"));*/
+			putValue(SHORT_DESCRIPTION, "Quits the application");
+		}
+
+		/**
+		 * Opérations réalisées par l'action
+		 * @param e l'évènement déclenchant l'action. Peut provenir d'un bouton
+		 *            ou d'un item de menu
+		 */
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			/*
+			 * Action à effectuer lorsque l'action "quit" est cliquée :
+			 * sortir avec un System.exit() (pas très propre, mais fonctionne)
+			 */
+			try {
+				//On ferme la socket
+				socket.close();
+			} 
+			catch (IOException e1) {
+				System.err.println("Erreur fermeture socket");
+			}
+			//On quitte
+			System.exit(0);
+		}
 	}
 }
