@@ -1,11 +1,11 @@
-Pour compiler : 
-cd machin/PCV
+How to compile on Linux ?
+
+Download .zip
+unzip Mini-chat-Java.zip
+cd Mini-Chat-Java
 javac Serveur/*.java
 javac Client/*.java
 
-ou depuis Eclipse
-
-
-Pour lancer : 
+How to launch ?  
 java Serveur.Serveur
 java Client.Client
