@@ -2,7 +2,7 @@ How to compile on Linux ?
 
 Download .zip
 
-unzip Mini-chat-Java.zip
+unzip Mini-chat-Java.zip<br/>
 cd Mini-Chat-Java
 javac Serveur/*.java
 javac Client/*.java
